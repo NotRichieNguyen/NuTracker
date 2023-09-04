@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nutrition Calculator</title>
+
+    <!-- Link to your CSS file -->
+    <link rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      const stringList = document.getElementById("logged-foods");
+      $(document).ready(function () {
+        $("#submit-button").click(function (event) {
+          event.preventDefault(); // Prevent the default form submission
+
+          $.ajax({
+            url: "", // Use the current URL
+            type: "POST",
+            data: $("#nutritionForm").serialize(),
+            success: function (data) {
+              if (data.nutrition_data) {
+                // Update the nutrition data as before
+                $("#nutrition-results").html(
+                  "<p>Food: " +
+                    data.nutrition_data.name +
+                    "</p>" +
+                    "<p>Calories: " +
+                    data.nutrition_data.calories +
+                    " kcal</p>" +
+                    "<p>Protein: " +
+                    data.nutrition_data.protein_g +
+                    " g</p>" +
+                    "<p>Carbs: " +
+                    data.nutrition_data.carbohydrates_total_g +
+                    " g</p>" +
+                    "<p>Fats: " +
+                    data.nutrition_data.fat_total_g +
+                    " g</p>"
+                );
+
+                // Calculate and update the running total of calories
+                var currentCalories = parseInt($("#total-calories").text());
+                var newCalories = data.nutrition_data.calories;
+                var updatedCalories = currentCalories + newCalories;
+                $("#total-calories").text(updatedCalories);
+
+                // Update the list of logged foods
+                var foodName = data.nutrition_data.name;
+                var foodCalories = data.nutrition_data.calories;
+                var foodItemHTML =
+                  "<li>" + foodName + ": " + foodCalories + " kcal</li>";
+                $("#logged-foods").append(foodItemHTML);
+              } else if (data.error_message) {
+                $("#nutrition-results").html(
+                  "<p>" + data.error_message + "</p>"
+                );
+              }
+            },
+          });
+        });
+      });
+    </script>
+    <style>
+      /* Custom scrollbar styles */
+      ::-webkit-scrollbar {
+        width: 12px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 6px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+    </style>
+  </head>
+  <body
+    style="
+      background-color: #a2b3c4;
+      margin: 0;
+      padding: 0;
+      font-family: Trade Gothic LT Bold, Helvetica Neue, Arial, sans-serif,
+        Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+    "
+  >
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(245, 245, 220, 0.664);
+        margin-right: 350px;
+        margin-left: 350px;
+        margin-top: 50px;
+        height: 750px;
+        box-shadow: 5px 7px 7px gray;
+        border-color: lightgray;
+        border-radius: 10px;
+        margin-bottom: 200px;
+      "
+    >
+      <div style="color: #451400; font-size: large">
+        <h1>Daily Nutrition Intake</h1>
+      </div>
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-evenly;
+          width: 65%;
+          color: #451400;
+          font-weight: bold;
+        "
+      >
+        <div style="margin-inline: 10px">
+          <h2><span> {{ total_calories|floatformat:0 }} </span> kcal</h2>
+        </div>
+
+        <div style="margin-inline: 10px">
+          <h2><span> {{ total_fats|floatformat:0 }} </span> g fat</h2>
+        </div>
+        <div style="margin-inline: 10px">
+          <h2><span> {{ total_proteins|floatformat:0 }} </span> g protein</h2>
+        </div>
+        <div style="margin-inline: 10px">
+          <h2><span> {{ total_carbs|floatformat:0 }} </span> g carbs</h2>
+        </div>
+      </div>
+      <div style="width: 60%">
+        <form
+          style="
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-around;
+          "
+          id="nutritionForm"
+          method="post"
+        >
+          {% csrf_token %}
+          <div>
+            <label style="margin-left: 80px" for="{{ form.food.id_for_label }}"
+              >Food Item:</label
+            >
+            <input
+              style="
+                border-radius: 3px;
+                height: 25px;
+                width: 300px;
+                border-color: lightgray;
+                margin-left: 80px;
+              "
+              type="text"
+              id="{{ form.food.id_for_label }}"
+              name="{{ form.food.name }}"
+              maxlength="100"
+              required
+            /><br />
+          </div>
+          <div>
+            <label
+              style="margin-left: 10px"
+              for="{{ form.serving_size.id_for_label }}"
+              >Serving Size:</label
+            >
+            <input
+              style="
+                border-radius: 3px;
+                height: 25px;
+                width: 300px;
+                border-color: lightgray;
+                margin-left: 10px;
+              "
+              type="text"
+              id="{{ form.serving_size.id_for_label }}"
+              name="{{ form.serving_size.name }}"
+              maxlength="100"
+              required
+            /><br />
+          </div>
+          <div>
+            <button
+              style="
+                height: 35px;
+                margin-top: 10px;
+                background-color: rgba(210, 236, 165, 0.788);
+                border-color: lightgray;
+                border-radius: 5px;
+                width: 70px;
+                font-weight: bold;
+                margin-left: 10px;
+              "
+              type="submit"
+            >
+              ADD!
+            </button>
+          </div>
+        </form>
+      </div>
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          height: 25%;
+          width: 90%;
+          margin-bottom: 200px;
+          margin-top: 50px;
+        "
+      >
+        <!-- <div
+          style="font-weight: bold; height: 200px; width: 40%;"
+        >
+          {% if error_message %}
+          <p>{{ error_message }}</p>
+          {% else %}
+          <p>Current Food: {{ nutrition_data.name }}</p>
+          <p>Calories: {{ nutrition_data.calories|floatformat:0 }} kcal</p>
+          <p>Protein: {{ nutrition_data.protein_g }} g</p>
+          <p>Carbs: {{ nutrition_data.carbohydrates_total_g }} g</p>
+          <p>Fats: {{ nutrition_data.fat_total_g }} g</p>
+          {% endif %}
+        </div> -->
+        <div
+          style="
+            width: 250px;
+            padding: 10px;
+            margin-top: 200px;
+            margin-right: 50px;
+          "
+        >
+          <h2>Nutrition Facts</h2>
+          <hr style="border: 1px solid #000" />
+          <p style="font-weight: bold">Serving Size: 1 serving</p>
+          <p>{{ nutrition_data.name }}</p>
+          <p style="font-weight: bold">
+            Calories: {{ nutrition_data.calories|floatformat:0 }}
+          </p>
+          <p>Total Fat: {{ nutrition_data.fat_total_g }}g</p>
+          <p>Cholesterol: {{ nutrition_data.cholesterol_mg }}mg</p>
+          <p>Sodium: {{ nutrition_data.sodium_mg }}mg</p>
+          <p>
+            Total Carbohydrates: {{ nutrition_data.carbohydrates_total_g }}g
+          </p>
+          <p style="margin-left: 20px">Sugars: {{ nutrition_data.sugar_g }}g</p>
+          <p>Protein: {{ nutrition_data.protein_g }}g</p>
+          <hr style="border: 1px solid #000" />
+        </div>
+        <div
+          style="
+            padding: 10px;
+            width: 40%;
+            height: 400px;
+            overflow-y: auto;
+            border: none;
+            margin-top: 200px;
+          "
+        >
+          <h2 style="font-weight: bold">Foods Logged:</h2>
+          <ul
+            style="list-style-type: none; padding: 0; margin: 0"
+            id="logged-foods"
+          >
+            {% for food in logged_foods %}
+            <li style="border-bottom: 1px solid #ccc; padding: 10px">
+              <div style="font-weight: bold">{{ food.name }}</div>
+              <div>{{ food.serving_size }} grams</div>
+              <div style="font-weight: bold">
+                {{ food.calories|floatformat:0 }} kcal
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
